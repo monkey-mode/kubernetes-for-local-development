@@ -1,0 +1,1 @@
+# minukube-for-local-development
