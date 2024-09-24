@@ -2,7 +2,7 @@
 
 ---
 
-#### **Day 1: Introduction and Setup**
+#### **1: Introduction and Setup**
 1. **Overview of Kubernetes and Minikube**  
    - Introduction to Kubernetes: Concepts and Architecture  
    - What is Minikube?  
@@ -17,10 +17,10 @@
    - Basic kubectl commands for interacting with Minikube  
 4. **Exploring Minikube Commands**  
    - Starting, Stopping, and Deleting a Cluster  
-   - Accessing Kubernetes Dashboard  
    - Using Minikube Add-ons  
+   - Accessing Kubernetes Dashboard  
 
-#### **Day 2: Working with Kubernetes Objects**
+#### **2: Working with Kubernetes Objects**
 1. **Pods and Deployments in Minikube**  
    - Creating and Managing Pods  
    - Deployments and ReplicaSets  
@@ -33,7 +33,7 @@
    - Managing Configuration with ConfigMaps  
    - Securing Sensitive Data with Secrets  
 
-#### **Day 3: Advanced Minikube Usage**
+#### **3: Advanced Minikube Usage**
 1. **Persistent Storage in Minikube**  
    - Working with Persistent Volumes (PV) and Persistent Volume Claims (PVC)  
    - Storage Classes and Dynamic Provisioning  
@@ -45,7 +45,7 @@
    - Monitoring Kubernetes Objects  
    - Installing and Using Monitoring Tools (Prometheus, Grafana)  
 
-#### **Day 4: Local Development Workflow**
+#### **4: Local Development Workflow**
 1. **Building and Deploying Local Applications**  
    - Building Container Images Using Minikube  
    - Deploying Local Container Images in Minikube  
@@ -56,7 +56,7 @@
    - Running Unit and Integration Tests on Minikube  
    - Strategies for Debugging in a Local Environment  
 
-#### **Day 5: Hands-On Lab and Q&A**
+#### **5: Hands-On Lab and Q&A**
 1. **Hands-On Lab**  
    - Setting up a Sample Kubernetes Application  
    - Working with Deployments, Services, and Persistent Storage  
