@@ -22,7 +22,7 @@ spec:
 
 To create the Pod in Minikube, run:
 ```bash
-kubectl apply -f pods/pod.yaml
+kubectl apply -f pod.yaml
 ```
 
 To view Pods:
@@ -59,7 +59,7 @@ spec:
 
 Apply the deployment:
 ```bash
-kubectl apply -f deployments/deployment.yaml
+kubectl apply -f deployment/deployment.yaml
 ```
 
 ### **1.3 Scaling Deployments**
@@ -100,7 +100,7 @@ spec:
 
 Apply the service:
 ```bash
-kubectl apply -f service.yaml
+kubectl apply -f services/service.yaml
 ```
 
 ### **2.2 Exposing Services in Minikube**
@@ -136,22 +136,22 @@ kind: ConfigMap
 metadata:
   name: example-configmap
 data:
-  key1: value1
-  key2: value2
+  config-key1: value1
+  config-key2: value2
 ```
 
 Create the ConfigMap in Minikube:
 ```bash
-kubectl apply -f configmap.yaml
+kubectl apply -f configs/configmap.yaml
 ```
 
-You can use this ConfigMap in a Pod by mounting it as environment variables:
+#### **Using ConfigMaps in a Pod (Environment Variable)**
 
 ```yaml
 apiVersion: v1
 kind: Pod
 metadata:
-  name: pod-with-configmap
+  name: pod-with-configmap-env
 spec:
   containers:
   - name: app-container
@@ -161,7 +161,47 @@ spec:
       valueFrom:
         configMapKeyRef:
           name: example-configmap
-          key: key1
+          key: config-key1
+```
+
+```bash
+kubectl apply -f configs/configmap-env.yaml
+```
+
+#### **Using ConfigMaps in a Pod (Mounted as a File)**
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-with-configmap-file
+spec:
+  containers:
+  - name: app-container
+    image: nginx
+    volumeMounts:
+    - name: config-volume
+      mountPath: /etc/config
+  volumes:
+  - name: config-volume
+    configMap:
+      name: example-configmap
+```
+
+```bash
+kubectl apply -f configs/configmap-file.yaml
+```
+
+To access the ConfigMap inside the pod, you can enter the container:
+
+```bash
+kubectl exec -it pod-with-configmap-env -- /bin/sh
+# Check environment variable
+echo $CONFIG_KEY1
+
+kubectl exec -it pod-with-configmap-file -- /bin/sh
+# Check mounted file
+cat /etc/config/config-key1
 ```
 
 ### **3.2 Securing Sensitive Data with Secrets**
@@ -180,7 +220,7 @@ data:
   password: cGFzc3dvcmQ=
 ```
 
-Note: The values are Base64 encoded. To encode a string:
+The values are Base64 encoded. To encode a string:
 ```bash
 echo -n "user" | base64
 ```
@@ -190,13 +230,13 @@ Apply the Secret:
 kubectl apply -f secret.yaml
 ```
 
-To use the Secret in a Pod:
+#### **Using Secrets in a Pod (Environment Variable)**
 
 ```yaml
 apiVersion: v1
 kind: Pod
 metadata:
-  name: pod-with-secret
+  name: pod-with-secret-env
 spec:
   containers:
   - name: app-container
@@ -208,3 +248,108 @@ spec:
           name: example-secret
           key: username
 ```
+
+#### **Using Secrets in a Pod (Mounted as a File)**
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-with-secret-file
+spec:
+  containers:
+  - name: app-container
+    image: nginx
+    volumeMounts:
+    - name: secret-volume
+      mountPath: /etc/secret
+  volumes:
+  - name: secret-volume
+    secret:
+      secretName: example-secret
+```
+
+To check the secrets inside the pod:
+
+```bash
+kubectl exec -it pod-with-secret-env -- /bin/sh
+# Check environment variable
+echo $SECRET_USERNAME
+
+kubectl exec -it pod-with-secret-file -- /bin/sh
+# Check mounted file
+cat /etc/secret/username
+```
+
+---
+
+## Kustomization in Kubernetes
+
+**Kustomize** is a Kubernetes-native configuration management tool that allows you to customize Kubernetes YAML configurations without the need for templating.
+
+### **4.1 Introduction to Kustomize**
+Kustomize allows you to define overlays that modify base configurations for different environments (e.g., dev, staging, production) without duplicating the YAML files.
+
+Some key concepts in Kustomize:
+- **Bases**: Basic Kubernetes resources you want to reuse.
+- **Overlays**: Customizations to the base resources for specific environments.
+
+Kustomize is integrated into `kubectl`, so you don’t need additional tools to use it.
+
+### **4.2 Setting Up a Kustomization Directory Structure**
+The typical structure for Kustomize includes a base directory and environment-specific overlays. Here’s an example structure:
+
+```
+.
+├── base
+│   ├── deployment.yaml
+│   └── kustomization.yaml
+└── overlays
+    ├── dev
+    │   └── kustomization.yaml
+    └── prod
+        └── kustomization.yaml
+```
+
+### **4.3 Creating a Base Kustomization**
+A **kustomization.yaml** file specifies the resources to include in the Kustomization process.
+
+Example **base/kustomization.yaml**:
+```yaml
+resources:
+  - deployment.yaml
+```
+
+### **4.4 Overlays for Environments**
+You can create environment-specific overlays that adjust the base configurations. For example, the dev environment can scale down the number of replicas.
+
+Example **overlays/dev/kustomization.yaml**:
+```yaml
+resources:
+  - ../../base
+
+patchesStrategicMerge:
+  - replicas-patch.yaml
+```
+
+And the **replicas-patch.yaml** to override the number of replicas:
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+spec:
+  replicas: 1
+```
+
+### **4.5 Applying Kustomizations**
+To apply a specific overlay (e.g., for the dev environment), use:
+```bash
+kubectl apply -k overlays/dev/
+```
+
+This applies the configuration, including any custom patches from the overlay.
+
+---
+
+With Kustomize, you can efficiently manage Kubernetes configuration for multiple environments, ensuring consistency and ease of deployment
